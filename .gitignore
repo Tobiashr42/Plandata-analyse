@@ -1,0 +1,37 @@
+# ----------------
+# Python
+# ----------------
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+env/
+
+# ----------------
+# VS Code
+# ----------------
+.vscode/
+
+# ----------------
+# Jupyter
+# ----------------
+.ipynb_checkpoints/
+
+# ----------------
+# GIS / data
+# ----------------
+data/raw/
+*.shp
+*.dbf
+*.shx
+*.prj
+*.gpkg
+*.tif
+*.tiff
+*.geojson
+
+# ----------------
+# OS
+# ----------------
+.DS_Store
+Thumbs.db

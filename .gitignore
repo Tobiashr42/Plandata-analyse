@@ -20,7 +20,11 @@ env/
 # ----------------
 # GIS / data
 # ----------------
-data/raw/
+data/*
+!data/README.md
+results/
+
+# GIS filer
 *.shp
 *.dbf
 *.shx
@@ -29,8 +33,11 @@ data/raw/
 *.tif
 *.tiff
 *.geojson
-*.txt
-results/
+
+# Logs
+*.log
+data/*.txt
+
 # ----------------
 # OS
 # ----------------

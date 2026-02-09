@@ -10,9 +10,13 @@ from pathlib import Path
 # ---------------------------------------------------------
 # Projektstier
 # ---------------------------------------------------------
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+# Øverst i alle scripts der skal gemme/læse filer
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
-DATA_DIR.mkdir(exist_ok=True)  # sørg for at data-mappen findes
+RESULTS_DIR = PROJECT_ROOT / "results"
+
+DATA_DIR.mkdir(exist_ok=True)
+RESULTS_DIR.mkdir(exist_ok=True)
 
 # ---------------------------------------------------------
 # Hent plan
@@ -21,10 +25,15 @@ komnr=101
 plantype="LOKALPLAN"
 status="VEDTAGET"
 planid=1072539
-plan=plan.hent_enkelt_plan(komnr,plantype,status,planid)[0]
-geometri=shape(plan["geometry"])
-wkt_geometri=geometri.wkt
-#print(wkt_geometri)
+
+print(f"Henter plan {planid}…")
+plan_data = plan.hent_enkelt_plan(komnr, plantype, status, planid)
+
+if not plan_data:
+    raise RuntimeError("Ingen plan fundet")
+
+plan_geom = shape(plan_data[0]["geometry"])
+wkt_geometri = plan_geom.wkt
 
 # ---------------------------------------------------------
 # Hent bygninger (i status 6 og anvendelse under 900)
@@ -39,5 +48,5 @@ df["wkt"] = df["byg404Koordinat"].apply(lambda x: x.get("wkt") if isinstance(x, 
 df["geometry"] = df["wkt"].apply(wkt.loads)
 gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:25832")
 
-filepath= DATA_DIR / f"bygninger_{planid}.geojson"
+filepath= RESULTS_DIR / f"bygninger_i_plan_{planid}.geojson"
 gdf.to_file(filepath, driver="GeoJSON")

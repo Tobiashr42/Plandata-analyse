@@ -6,18 +6,27 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load .env fra projektroden
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-dotenv_path = PROJECT_ROOT / "env" / ".env"
-load_dotenv(dotenv_path)
+# --------------------------------------------------
+# Konfiguration
+# --------------------------------------------------
 
-def hent_bygning(geometri, tidspunkt=None):
-    register = "BBR"                # fx BBR, DAR, DKDF osv.
-    version = "v1"                    # fx v1
-    api_key = os.getenv("BBR_API_KEY")
-    if not api_key:
-        raise RuntimeError("BBR_API_KEY mangler. Tjek din .env-fil.")
-    conn = http.client.HTTPSConnection("graphql.datafordeler.dk")
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+load_dotenv(PROJECT_ROOT / "env" / ".env")
+
+BBR_API_KEY = os.getenv("BBR_API_KEY")
+if not BBR_API_KEY:
+    raise RuntimeError("BBR_API_KEY mangler. læs Readme eller tjek env/.env")
+
+BBR_HOST = "graphql.datafordeler.dk"
+REGISTER = "BBR"
+VERSION = "v1"
+
+# --------------------------------------------------
+# Hent bygninger indenfor en geometri
+# --------------------------------------------------
+
+def hent_bygning(geometri, tidspunkt=None):             
+    conn = http.client.HTTPSConnection(BBR_HOST)
     nu = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     if tidspunkt is None:
         tidspunkt = nu
@@ -87,16 +96,17 @@ def hent_bygning(geometri, tidspunkt=None):
         """
         payload = json.dumps({"query": query})
         headers = {"content-type": "application/json"}
-        conn.request("POST", f"/{register}/{version}?apiKey={api_key}", payload, headers)
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data.decode("utf-8"))
 
-        bygninger = data.get("data", {}).get("BBR_Bygning", {}).get("nodes", [])
+        conn.request("POST", f"/{REGISTER}/{VERSION}?apiKey={BBR_API_KEY}", payload, headers)
+        
+        response = conn.getresponse()
+        data = json.loads(response.read().decode("utf-8"))
+
+        nodes = data.get("data", {}).get("BBR_Bygning", {}).get("nodes", [])
         pageinfo = data.get("data", {}).get("BBR_Bygning", {}).get("pageInfo", {})
         has_next = pageinfo.get("hasNextPage", False)
         cursor = pageinfo.get("endCursor", None)
-        all_nodes.extend(bygninger)
+        all_nodes.extend(nodes)
 
         if not has_next:
             break
@@ -104,7 +114,3 @@ def hent_bygning(geometri, tidspunkt=None):
         time.sleep(0.5)
     conn.close()
     return all_nodes
-
-# Eksempel på brug:
-if __name__ == "__main__":
-    hent_bygning("POLYGON((507269.454538909 6220414.46082892, 507305.574611149 6220539.06107812, 507470.77494155 6220525.9010518, 507433.33273166 6220424.33582511, 507384.047971257 6220421.36601678, 507269.454538909 6220414.46082892))")

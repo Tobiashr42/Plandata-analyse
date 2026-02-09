@@ -1,12 +1,22 @@
 import http.client
 import json
 import time
+import os
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load .env fra projektroden
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+dotenv_path = PROJECT_ROOT / "env" / ".env"
+load_dotenv(dotenv_path)
 
 def hent_bygning(geometri, tidspunkt=None):
     register = "BBR"                # fx BBR, DAR, DKDF osv.
     version = "v1"                    # fx v1
-    api_key = "MEuNVbg5Tb6X3RKnpWoeENYgVq3YBXhXnIfylVeXmDbBGiTqxyeoC7t4KWIyXhEjmdOqHAa68xcVncEQaC4xons3HcsdzxlwW"
+    api_key = os.getenv("BBR_API_KEY")
+    if not api_key:
+        raise RuntimeError("BBR_API_KEY mangler. Tjek din .env-fil.")
     conn = http.client.HTTPSConnection("graphql.datafordeler.dk")
     nu = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     if tidspunkt is None:

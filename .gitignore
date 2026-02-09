@@ -11,7 +11,7 @@ env/
 # VS Code
 # ----------------
 .vscode/
-
+*.code-workspace
 # ----------------
 # Jupyter
 # ----------------
@@ -29,7 +29,8 @@ data/raw/
 *.tif
 *.tiff
 *.geojson
-
+*.txt
+results/
 # ----------------
 # OS
 # ----------------

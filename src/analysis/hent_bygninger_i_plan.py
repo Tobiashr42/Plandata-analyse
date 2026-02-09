@@ -1,5 +1,5 @@
-import BBR_api
-import plan_api
+from ..api import bbr
+from ..api import plan
 from shapely.geometry import shape
 import geopandas as gpd
 import pandas as pd
@@ -21,7 +21,7 @@ komnr=101
 plantype="LOKALPLAN"
 status="VEDTAGET"
 planid=1072539
-plan=plan_api.hent_enkelt_plan(komnr,plantype,status,planid)[0]
+plan=plan.hent_enkelt_plan(komnr,plantype,status,planid)[0]
 geometri=shape(plan["geometry"])
 wkt_geometri=geometri.wkt
 #print(wkt_geometri)
@@ -29,7 +29,7 @@ wkt_geometri=geometri.wkt
 # ---------------------------------------------------------
 # Hent bygninger (i status 6 og anvendelse under 900)
 # ---------------------------------------------------------
-bygninger_i_plan=BBR_api.hent_bygning(wkt_geometri)
+bygninger_i_plan=bbr.hent_bygning(wkt_geometri)
 
 # ---------------------------------------------------------
 # gem fil
@@ -39,5 +39,5 @@ df["wkt"] = df["byg404Koordinat"].apply(lambda x: x.get("wkt") if isinstance(x, 
 df["geometry"] = df["wkt"].apply(wkt.loads)
 gdf = gpd.GeoDataFrame(df, geometry="geometry", crs="EPSG:25832")
 
-filepath= DATA_DIR / f"bygninger.geojson_{planid}"
+filepath= DATA_DIR / f"bygninger_{planid}.geojson"
 gdf.to_file(filepath, driver="GeoJSON")
